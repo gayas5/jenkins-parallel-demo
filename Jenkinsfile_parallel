@@ -1,0 +1,89 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(
+            name: 'GIT_BRANCH',
+            defaultValue: 'main',
+            description: 'Git branch to build'
+        )
+
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'qa', 'prod'],
+            description: 'Select deployment environment'
+        )
+
+        booleanParam(
+            name: 'SKIP_TESTS',
+            defaultValue: false,
+            description: 'Skip unit tests'
+        )
+    }
+
+    tools {
+        maven 'M3'   // Must be configured in Jenkins Global Tool Config
+        jdk 'JDK17'  // Must be configured
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo "Checking out branch: ${params.GIT_BRANCH}"
+                git branch: params.GIT_BRANCH,
+                    url: 'https://github.com/gayas5/spring3-jenkins-pipeline-practice.git'
+            }
+        }
+
+        stage('Parallel Build & Info') {
+            parallel {
+                stage('Maven Build') {
+                    steps {
+                        echo "Building project for environment: ${params.ENVIRONMENT}"
+                        script {
+                            if (params.SKIP_TESTS) {
+                                sh 'mvn clean package -DskipTests -Dmaven.compiler.source=1.8 -Dmaven.compiler.target=1.8'
+                            } else {
+                                sh 'mvn clean package -Dmaven.compiler.source=1.8 -Dmaven.compiler.target=1.8'
+                            }
+                        }
+                    }
+                }
+
+                stage('Environment Info') {
+                    steps {
+                        echo "Environment selected: ${params.ENVIRONMENT}"
+                        sh 'uname -a'
+                    }
+                }
+
+                stage('Workspace Info') {
+                    steps {
+                        echo "Workspace files:"
+                        sh 'ls -l'
+                    }
+                }
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                echo "Archiving artifacts..."
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true, allowEmptyArchive: true
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "GAYAS Parallel Build SUCCESS for ${params.ENVIRONMENT}"
+        }
+        failure {
+            echo "GAYAS Parallel Build FAILED"
+        }
+        always {
+            echo "Pipeline completed at ${new Date()}"
+        }
+    }
+}
