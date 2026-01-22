@@ -26,7 +26,7 @@
 
     <build>
         <plugins>
-            <!-- Updated Maven Compiler Plugin -->
+            <!-- Maven Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -37,7 +37,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven JAR Plugin with manifest for main class -->
+            <!-- Maven JAR Plugin to specify main class -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
