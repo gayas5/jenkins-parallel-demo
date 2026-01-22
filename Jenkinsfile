@@ -22,7 +22,8 @@ pipeline {
                 stage('Maven Build') {
                     steps {
                         echo "Building project for ${params.ENV}"
-                        sh 'mvn clean package'
+                        // Fix: Force Java 8 compilation
+                        sh 'mvn clean package -Dmaven.compiler.source=1.8 -Dmaven.compiler.target=1.8'
                     }
                 }
 
@@ -35,6 +36,7 @@ pipeline {
 
                 stage('Workspace Info') {
                     steps {
+                        echo "Workspace files:"
                         sh 'ls -l'
                     }
                 }
@@ -43,6 +45,7 @@ pipeline {
 
         stage('Archive Artifact') {
             steps {
+                echo "Archiving artifacts..."
                 archiveArtifacts artifacts: 'target/*.war,target/*.jar', fingerprint: true
             }
         }
@@ -53,7 +56,7 @@ pipeline {
             echo "Gayas 546 Jenkins Parallel & Parameterized Pipeline SUCCESS"
         }
         failure {
-            echo " Pipeline FAILED"
+            echo "Pipeline FAILED"
         }
     }
 }
